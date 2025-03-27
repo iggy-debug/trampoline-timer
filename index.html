@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trampoline Timer Systeem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-right: 20px;
+            margin-top: 20px;
+        }
+        .color-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .color-box {
+            width: 100px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .red { background-color: red; }
+        .blue { background-color: blue; }
+        .green { background-color: green; }
+        .yellow { background-color: yellow; color: black; }
+        .gray { background-color: gray; }
+        .black { background-color: black; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 kolommen */
+            grid-template-rows: repeat(5, 1fr); /* 5 rijen */
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .trampoline {
+            width: 150px;
+            height: 75px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            border: 2px solid #ccc;
+            background-color: lightgray;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="color-list" id="colorList">
+                <div class="color-box red" onclick="setCurrentColor('red')">Rood</div>
+                <div class="color-box blue" onclick="setCurrentColor('blue')">Blauw</div>
+                <div class="color-box green" onclick="setCurrentColor('green')">Groen</div>
+                <div class="color-box yellow" onclick="setCurrentColor('yellow')">Geel</div>
+                <div class="color-box gray" onclick="setCurrentColor('gray')">Grijs</div>
+                <div class="color-box black" onclick="setCurrentColor('black')">Zwart</div>
+            </div>
+            <button onclick="nextColor()">Volgende Kleur</button>
+            <button onclick="startTimers()">Start</button>
+            <button onclick="pauseTimers()">Pauze</button>
+            <button onclick="resetTimers()">Reset</button>
+            <button onclick="selectAll()">Selecteer Alle</button>
+        </div>
+        
+        <div class="grid" id="trampolineGrid">
+            <!-- 15 trampoline vakjes worden hier dynamisch toegevoegd -->
+        </div>
+    </div>
+
+    <script>
+        let colors = ["red", "blue", "green", "yellow", "gray", "black"];
+        let currentColor = colors[0]; // De kleur die aan de beurt is
+        let trampolines = [];
+        let timersRunning = false;
+        let duration = 10 * 60; // 10 minuten in seconden
+        let globalTimeLeft = duration;
+        let timerInterval;
+        
+        // Dynamisch trampoline vakken maken
+        const grid = document.getElementById("trampolineGrid");
+        for (let i = 0; i < 15; i++) {
+            let div = document.createElement("div");
+            div.className = "trampoline";
+            div.textContent = "10:00";
+            div.dataset.index = i;
+            div.onclick = function() { changeColor(this); };
+            grid.appendChild(div);
+            trampolines.push(div);
+        }
+        
+        function setCurrentColor(color) {
+            currentColor = color; // Zet de huidige geselecteerde kleur
+            updateColorList(); // Werk de kleurvolgorde bij
+        }
+        
+        function changeColor(element) {
+            // Verander de achtergrondkleur van het vak naar de geselecteerde kleur
+            element.style.backgroundColor = currentColor;
+            element.textContent = "10:00"; // Zet de timer naar 10:00 wanneer de kleur verandert
+        }
+        
+        function nextColor() {
+            const currentIndex = colors.indexOf(currentColor);
+            const nextIndex = (currentIndex + 1) % colors.length;
+            currentColor = colors[nextIndex];
+            updateColorList();
+        }
+
+        function updateColorList() {
+            const colorList = document.getElementById("colorList");
+            const colorBoxes = colorList.children;
+            for (let i = 0; i < colors.length; i++) {
+                colorBoxes[i].style.backgroundColor = colors[i];
+                if (colors[i] === currentColor) {
+                    colorBoxes[i].style.border = "2px solid black";  // Highlight de huidige kleur
+                } else {
+                    colorBoxes[i].style.border = "none";
+                }
+            }
+        }
+
+        function startTimers() {
+            if (timersRunning) return;
+            timersRunning = true;
+            timerInterval = setInterval(() => {
+                if (globalTimeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    trampolines.forEach(trampoline => {
+                        if (colors.some(color => trampoline.style.backgroundColor === color)) {
+                            trampoline.textContent = "00:00";
+                        }
+                    });
+                } else {
+                    let minutes = Math.floor(globalTimeLeft / 60);
+                    let seconds = globalTimeLeft % 60;
+                    trampolines.forEach(trampoline => {
+                        if (colors.some(color => trampoline.style.backgroundColor === color)) {
+                            trampoline.textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+                        }
+                    });
+                    globalTimeLeft--;
+                }
+            }, 1000);
+        }
+        
+        function pauseTimers() {
+            clearInterval(timerInterval);
+            timersRunning = false;
+        }
+        
+        function resetTimers() {
+            clearInterval(timerInterval);
+            timersRunning = false;
+            globalTimeLeft = duration;
+            trampolines.forEach(trampoline => {
+                trampoline.style.backgroundColor = "lightgray"; // Reset de kleur naar grijs
+                trampoline.textContent = "10:00";
+            });
+        }
+
+        function selectAll() {
+            // Stel elke trampoline in op de **huidige kleur**
+            trampolines.forEach(trampoline => {
+                trampoline.style.backgroundColor = currentColor;
+                trampoline.textContent = "10:00"; // Zet de timer naar 10:00
+            });
+        }
+    </script>
+</body>
+</html>
