@@ -7,7 +7,7 @@
     <style>
         /* Achtergrond instellen */
         body {
-            background-image: url('image.png'); /* Afbeelding als achtergrond */
+            background-image: url('image.png');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -20,7 +20,7 @@
             margin: 0;
         }
 
-        /* Layout van de hele pagina */
+        /* Layout */
         .container {
             display: flex;
             align-items: center;
@@ -28,7 +28,7 @@
             gap: 20px;
         }
 
-        /* Kleurvolgorde lijst */
+        /* Kleurvolgorde */
         .color-list {
             display: flex;
             flex-direction: column;
@@ -38,7 +38,6 @@
             border-radius: 8px;
         }
 
-        /* Kleurvakjes in de lijst */
         .color-box {
             width: 50px;
             height: 50px;
@@ -58,9 +57,10 @@
             height: 60px;
             background: grey;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: white;
             cursor: pointer;
@@ -84,6 +84,9 @@
             cursor: pointer;
         }
 
+        .start { background: green; color: white; }
+        .pause { background: orange; color: white; }
+        .reset { background: red; color: white; }
         .next-color { background: lightblue; }
         .select-all { background: lightgreen; }
     </style>
@@ -124,17 +127,23 @@
 
     <!-- Knoppen -->
     <div class="buttons">
+        <button class="start" onclick="startTimers()">Start</button>
+        <button class="pause" onclick="pauseTimers()">Pauze</button>
+        <button class="reset" onclick="resetTimers()">Reset</button>
         <button class="next-color" onclick="nextColor()">Volgende Kleur</button>
         <button class="select-all" onclick="selectAll()">Selecteer Alle</button>
     </div>
 
     <script>
-        // Kleurenvolgorde
         let colors = ["red", "blue", "green", "yellow", "grey", "black"];
         let currentColorIndex = 0;
+        let timers = [];
+        let timerRunning = false;
 
         function changeColor(trampoline) {
             trampoline.style.background = colors[currentColorIndex];
+            trampoline.setAttribute("data-time", 600); // 10 minuten (600 sec)
+            updateTimerDisplay(trampoline);
         }
 
         function nextColor() {
@@ -144,8 +153,66 @@
         function selectAll() {
             let trampolines = document.querySelectorAll(".trampoline");
             trampolines.forEach(trampoline => {
-                trampoline.style.background = colors[currentColorIndex];
+                changeColor(trampoline);
             });
+        }
+
+        function startTimers() {
+            if (!timerRunning) {
+                let trampolines = document.querySelectorAll(".trampoline");
+                trampolines.forEach((trampoline, index) => {
+                    if (trampoline.getAttribute("data-time") && !timers[index]) {
+                        timers[index] = setInterval(() => {
+                            let timeLeft = parseInt(trampoline.getAttribute("data-time"));
+                            if (timeLeft > 0) {
+                                timeLeft--;
+                                trampoline.setAttribute("data-time", timeLeft);
+                                updateTimerDisplay(trampoline);
+                            } else {
+                                clearInterval(timers[index]);
+                                timers[index] = null;
+                                trampoline.style.background = "grey";
+                                trampoline.textContent = "";
+                            }
+                        }, 1000);
+                    }
+                });
+                timerRunning = true;
+            }
+        }
+
+        function pauseTimers() {
+            timers.forEach((timer, index) => {
+                if (timer) {
+                    clearInterval(timer);
+                    timers[index] = null;
+                }
+            });
+            timerRunning = false;
+        }
+
+        function resetTimers() {
+            timers.forEach((timer, index) => {
+                if (timer) clearInterval(timer);
+                timers[index] = null;
+            });
+            let trampolines = document.querySelectorAll(".trampoline");
+            trampolines.forEach(trampoline => {
+                trampoline.style.background = "grey";
+                trampoline.textContent = "";
+                trampoline.removeAttribute("data-time");
+            });
+            timers = [];
+            timerRunning = false;
+        }
+
+        function updateTimerDisplay(trampoline) {
+            let timeLeft = parseInt(trampoline.getAttribute("data-time"));
+            if (timeLeft !== null && !isNaN(timeLeft)) {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                trampoline.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
     </script>
 
