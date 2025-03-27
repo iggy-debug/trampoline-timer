@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trampoline Timer</title>
+    <style>
+        /* Achtergrond instellen */
+        body {
+            background-image: url('image.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* Kleurvolgorde */
+        .color-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+
+        .color-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+
+        /* Trampoline vakken */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .trampoline {
+            width: 120px;
+            height: 60px;
+            background: grey;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            border: 2px solid black;
+            border-radius: 5px;
+        }
+
+        /* Knoppen */
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .start { background: green; color: white; }
+        .pause { background: orange; color: white; }
+        .reset { background: red; color: white; }
+        .next-color { background: lightblue; }
+        .select-all { background: lightgreen; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Kleurvolgorde aan de linkerkant -->
+        <div class="color-list">
+            <div class="color-box" style="background: red;"></div>
+            <div class="color-box" style="background: blue;"></div>
+            <div class="color-box" style="background: green;"></div>
+            <div class="color-box" style="background: yellow;"></div>
+            <div class="color-box" style="background: grey;"></div>
+            <div class="color-box" style="background: black;"></div>
+        </div>
+
+        <!-- Trampoline vakken -->
+        <div class="grid">
+            <!-- 15 trampolines -->
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+            <div class="trampoline" onclick="changeColor(this)"></div>
+        </div>
+    </div>
+
+    <!-- Knoppen -->
+    <div class="buttons">
+        <button class="start" onclick="startTimers()">Start</button>
+        <button class="pause" onclick="pauseTimers()">Pauze</button>
+        <button class="reset" onclick="resetTimers()">Reset</button>
+        <button class="next-color" onclick="nextColor()">Volgende Kleur</button>
+        <button class="select-all" onclick="selectAll()">Selecteer Alle</button>
+    </div>
+
+    <script>
+        let colors = ["red", "blue", "green", "yellow", "grey", "black"];
+        let currentColorIndex = 0;
+        let timers = [];
+        let timerRunning = false;
+
+        function changeColor(trampoline) {
+            trampoline.style.background = colors[currentColorIndex];
+            trampoline.setAttribute("data-time", 600); // 10 minuten (600 sec)
+            updateTimerDisplay(trampoline);
+        }
+
+        function nextColor() {
+            currentColorIndex = (currentColorIndex + 1) % colors.length;
+        }
+
+        function selectAll() {
+            let trampolines = document.querySelectorAll(".trampoline");
+            trampolines.forEach(trampoline => {
+                changeColor(trampoline);
+            });
+        }
+
+        function startTimers() {
+            if (!timerRunning) {
+                let trampolines = document.querySelectorAll(".trampoline");
+                trampolines.forEach((trampoline, index) => {
+                    if (trampoline.getAttribute("data-time") && !timers[index]) {
+                        timers[index] = setInterval(() => {
+                            let timeLeft = parseInt(trampoline.getAttribute("data-time"));
+                            if (timeLeft > 0) {
+                                timeLeft--;
+                                trampoline.setAttribute("data-time", timeLeft);
+                                updateTimerDisplay(trampoline);
+                            } else {
+                                clearInterval(timers[index]);
+                                timers[index] = null;
+                                trampoline.style.background = "grey";
+                                trampoline.textContent = "";
+                            }
+                        }, 1000);
+                    }
+                });
+                timerRunning = true;
+            }
+        }
+
+        function pauseTimers() {
+            timers.forEach((timer, index) => {
+                if (timer) {
+                    clearInterval(timer);
+                    timers[index] = null;
+                }
+            });
+            timerRunning = false;
+        }
+
+        function resetTimers() {
+            timers.forEach((timer, index) => {
+                if (timer) clearInterval(timer);
+                timers[index] = null;
+            });
+            let trampolines = document.querySelectorAll(".trampoline");
+            trampolines.forEach(trampoline => {
+                trampoline.style.background = "grey";
+                trampoline.textContent = "";
+                trampoline.removeAttribute("data-time");
+            });
+            timers = [];
+            timerRunning = false;
+        }
+
+        function updateTimerDisplay(trampoline) {
+            let timeLeft = parseInt(trampoline.getAttribute("data-time"));
+            if (timeLeft !== null && !isNaN(timeLeft)) {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                trampoline.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+    </script>
+
+</body>
+</html>
