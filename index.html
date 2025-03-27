@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trampoline Timer</title>
+    <style>
+        body {
+            background-image: url('image.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .color-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+
+        .color-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .trampoline {
+            width: 120px;
+            height: 60px;
+            background: grey;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            border: 2px solid black;
+            border-radius: 5px;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .start { background: green; color: white; }
+        .pause { background: orange; color: white; }
+        .reset { background: red; color: white; }
+        .next-color { background: lightblue; }
+        .select-all { background: lightgreen; }
+
+        .timer {
+            font-size: 72px; /* Grotere lettergrootte */
+            font-weight: bold;
+            margin-bottom: 20px; /* Meer ruimte onder de timer */
+            color: black; /* Kleur van de tekst wordt zwart */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="timer" id="main-timer">10:00</div>
+
+    <div class="container">
+        <div class="color-list">
+            <div class="color-box" style="background: red;"></div>
+            <div class="color-box" style="background: blue;"></div>
+            <div class="color-box" style="background: green;"></div>
+            <div class="color-box" style="background: yellow;"></div>
+            <div class="color-box" style="background: grey;"></div>
+            <div class="color-box" style="background: black;"></div>
+        </div>
+
+        <div class="grid">
+            <div class="trampoline" data-id="11">11</div>
+            <div class="trampoline" data-id="10">10</div>
+            <div class="trampoline" data-id="1">1</div>
+            <div class="trampoline" data-id="12">12</div>
+            <div class="trampoline" data-id="9">9</div>
+            <div class="trampoline" data-id="2">2</div>
+            <div class="trampoline" data-id="13">13</div>
+            <div class="trampoline" data-id="8">8</div>
+            <div class="trampoline" data-id="3">3</div>
+            <div class="trampoline" data-id="14">14</div>
+            <div class="trampoline" data-id="7">7</div>
+            <div class="trampoline" data-id="4">4</div>
+            <div class="trampoline" data-id="15">15</div>
+            <div class="trampoline" data-id="6">6</div>
+            <div class="trampoline" data-id="5">5</div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="start" onclick="startTimer()">Start</button>
+        <button class="pause" onclick="pauseTimer()">Pauze</button>
+        <button class="reset" onclick="resetTimer()">Reset</button>
+        <button class="next-color" onclick="nextColor()">Volgende Kleur</button>
+        <button class="select-all" onclick="selectAll()">Selecteer Alle</button>
+    </div>
+
+    <script>
+        let colors = ["red", "blue", "green", "yellow", "grey", "black"];
+        let currentColorIndex = 0;
+        let timeLeft = 600;
+        let timerInterval;
+
+        function updateTimerDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            document.getElementById("main-timer").textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timeLeft = 600;
+            updateTimerDisplay();
+        }
+
+        function nextColor() {
+            currentColorIndex = (currentColorIndex + 1) % colors.length;
+            const selectedTrampolines = document.querySelectorAll('.trampoline.selected');
+            selectedTrampolines.forEach(trampoline => {
+                trampoline.style.background = colors[currentColorIndex];
+            });
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.trampoline').forEach(trampoline => {
+                trampoline.classList.add('selected');
+                trampoline.style.background = colors[currentColorIndex];
+            });
+        }
+
+        document.querySelectorAll('.trampoline').forEach(trampoline => {
+            trampoline.addEventListener('click', function () {
+                trampoline.classList.toggle('selected');
+                if (trampoline.classList.contains('selected')) {
+                    trampoline.style.background = colors[currentColorIndex];
+                } else {
+                    trampoline.style.background = 'grey'; // or the default state
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
